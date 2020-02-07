@@ -1,5 +1,7 @@
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const User = require('../models/User.js');
-const userSelect = '_id name email phone';
+const userSelect = '_id username email';
 
 const readAllUsers = (req, res) => {
 	User.find().select(userSelect).exec()
@@ -7,10 +9,33 @@ const readAllUsers = (req, res) => {
 	.catch(err => res.status(500).json(err));
 };
 
-const createUser = (req, res) => {
-	User.create(req.body)
-	.then(user => res.status(201).json(user))
-	.catch(err => res.status(500).json(err));
+const createUser = async (req, res) => {
+	try {
+		const checkUserExists = await User.findOne({ email: req.body.email }).exec();
+		if (checkUserExists) {
+			res.status(409).json({ message: "Account already exists with that email." });
+			return;
+		}
+	
+		const hash = await bcrypt.hash(req.body.password, 10);
+		if (!hash) {
+			res.status(500).json({ message: "Failed to create account" });
+			return;
+		}
+	
+		const user = new User({
+			username: req.body.username,
+			email: req.body.email,
+			password: hash,
+		});
+		
+		user.save()
+		.then(result => res.status(201).json(user))
+		.catch(err => res.status(500).json(err));
+	}
+	catch(err) {
+		res.status(500).json(err);
+	}
 };
 
 const readUser = (req, res) => {
@@ -31,10 +56,39 @@ const deleteUser = (req, res) => {
 	.catch(err => res.status(500).json(err));
 };
 
+const authenticate = async (req, res) => {
+	try {
+		const user = await User.findOne({ email: req.body.email }).exec()
+		if (!user) {
+			res.status(400).json({ message: "Email address is unrecognised" });
+			return;
+		}
+		
+		const match = await bcrypt.compare(req.body.password, user.password);
+		if (match) {
+			const token = jwt.sign(
+				{ user },
+				process.env.JWT_KEY,
+				{ expiresIn: '1h' },
+			);
+
+			res.status(200).json({
+				message: "Authenticated",
+				token,
+			});
+		}
+		else res.status(401).json({ message: "Authentication failed" });
+	}
+	catch(err) {
+		res.status(500).json(err);
+	}
+};
+
 module.exports = {
 	readAllUsers,
 	createUser,
 	readUser,
 	updateUser,
 	deleteUser,
+	authenticate,
 };
