@@ -3,13 +3,13 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User.js');
 const userSelect = '_id username email';
 
-const readAllUsers = (req, res) => {
+exports.readAllUsers = (req, res) => {
 	User.find().select(userSelect).exec()
 	.then(users => res.status(200).json(users))
 	.catch(err => res.status(500).json(err));
 };
 
-const createUser = async (req, res) => {
+exports.createUser = async (req, res) => {
 	try {
 		const checkUserExists = await User.findOne({ email: req.body.email }).exec();
 		if (checkUserExists) {
@@ -38,25 +38,25 @@ const createUser = async (req, res) => {
 	}
 };
 
-const readUser = (req, res) => {
+exports.readUser = (req, res) => {
 	User.findById(req.params.id).select(userSelect).exec()
 	.then(user => res.status(200).json(user))
 	.catch(err => res.status(500).json(err));
 };
 
-const updateUser = (req, res) => {
+exports.updateUser = (req, res) => {
 	User.updateOne({ _id: req.params.id }, { $set: req.body }).exec()
 	.then(result => res.status(200).json(result))
 	.catch(err => res.status(500).json(err));
 };
 
-const deleteUser = (req, res) => {
+exports.deleteUser = (req, res) => {
 	User.deleteOne({ _id: req.params.id }).exec()
 	.then(result => res.status(200).json(result))
 	.catch(err => res.status(500).json(err));
 };
 
-const authenticate = async (req, res) => {
+exports.authenticate = async (req, res) => {
 	try {
 		const user = await User.findOne({ email: req.body.email }).exec()
 		if (!user) {
@@ -82,13 +82,4 @@ const authenticate = async (req, res) => {
 	catch(err) {
 		res.status(500).json(err);
 	}
-};
-
-module.exports = {
-	readAllUsers,
-	createUser,
-	readUser,
-	updateUser,
-	deleteUser,
-	authenticate,
 };
