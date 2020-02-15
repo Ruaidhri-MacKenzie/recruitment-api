@@ -1,8 +1,14 @@
+// NPM packages - bcrypt hashs and compares passwords so they aren't stored in clear text, jsonwebtoken is a form of authenitication
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+
+// User model can read, create, update, and delete users
 const User = require('../models/User.js');
+
+// User select string shows the fields returned when reading a user
 const userSelect = '_id username email';
 
+// Controller functions - the end-point of a request after any middleware has ran
 exports.readAllUsers = (req, res) => {
 	User.find().select(userSelect).exec()
 	.then(users => res.status(200).json(users))
