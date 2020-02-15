@@ -1,10 +1,12 @@
-// NPM Packages - express helps create a HTTP server with routing
+// NPM packages - express helps create a HTTP server with routing
 const express = require('express');
 
 // Middleware
 const checkAuth = require('../middleware/checkAuth.js');
 const checkAdmin = require('../middleware/checkAdmin.js');
 const checkSelf = require('../middleware/checkSelf.js');
+
+// Controller
 const userController = require('../controllers/userController.js');
 
 // Create Router
